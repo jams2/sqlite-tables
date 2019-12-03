@@ -1,0 +1,34 @@
+[flake8]
+ignore =
+    # W504: Linebreak after binary operator.
+    W504,
+
+    # E401: Multiple imports on one line.
+    E401,
+
+    # E116: Unexpected indent (comment)
+    E116,
+
+    # E226: Missing whitespace around arithmetic operator.
+    # (sometimes this is appropriate)
+    E226,
+
+    # W503: line break before binary operator.
+    # removed from PEP 8
+    W503,
+
+    E203,
+
+exclude =
+    .git,
+    __pycache__,
+    node_modules,
+    # (mostly) auto generated, so ignore.
+    migrations
+
+max-complexity = 15
+max-line-length = 88
+
+
+# see http://flake8.pycqa.org/en/latest/user/error-codes.html
+# and https://pycodestyle.readthedocs.io/en/latest/intro.html#error-codes
