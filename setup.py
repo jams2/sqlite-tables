@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="sqlite-tables-joshu",
+    name="sqlite_tables",
     version="0.0.1",
     author="Joshua Munn",
     author_email="joshamunn@gmail.com",
