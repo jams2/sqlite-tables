@@ -5,6 +5,9 @@ from ..column import (
     RealColumn,
     NumericColumn,
     TextColumn,
+    DateTimeColumn,
+    DateColumn,
+    TimeColumn,
 )
 from ..exceptions import InvalidColumnConfiguration
 from ..utils import SQLiteType
@@ -47,7 +50,7 @@ class TestColumnDefToSQL(unittest.TestCase):
         """A string should be wrapped in quote marks.
         """
         col = TextColumn('test_col', default='test string')
-        self.assertEqual('test_col TEXT DEFAULT "test string"', col.definition_to_sql())
+        self.assertEqual("test_col TEXT DEFAULT 'test string'", col.definition_to_sql())
 
     def test_numeric_column_type_correct(self):
         col = NumericColumn('test_col')
@@ -84,8 +87,50 @@ class TestColumnDefToSQL(unittest.TestCase):
     def test_default_empty_string(self):
         col = TextColumn('test_col', default='')
         self.assertEqual(
-            'DEFAULT ""',
+            "DEFAULT ''",
             col.get_definition_subs()['default_constraint'],
+        )
+
+    def test_datetime_column_to_sql(self):
+        col = DateTimeColumn('created')
+        self.assertEqual(
+            'created TEXT',
+            col.definition_to_sql(),
+        )
+
+    def test_datetime_column_to_sql_auto_now_insert(self):
+        col = DateTimeColumn('created', auto_now_insert=True)
+        self.assertEqual(
+            'created TEXT DEFAULT CURRENT_TIMESTAMP',
+            col.definition_to_sql(),
+        )
+
+    def test_date_column_to_sql(self):
+        col = DateColumn('created')
+        self.assertEqual(
+            'created TEXT',
+            col.definition_to_sql(),
+        )
+
+    def test_date_column_to_sql_auto_now_insert(self):
+        col = DateColumn('created', auto_now_insert=True)
+        self.assertEqual(
+            'created TEXT DEFAULT CURRENT_DATE',
+            col.definition_to_sql(),
+        )
+
+    def test_time_column_to_sql(self):
+        col = TimeColumn('created')
+        self.assertEqual(
+            'created TEXT',
+            col.definition_to_sql(),
+        )
+
+    def test_time_column_to_sql_auto_now_insert(self):
+        col = TimeColumn('created', auto_now_insert=True)
+        self.assertEqual(
+            'created TEXT DEFAULT CURRENT_TIME',
+            col.definition_to_sql(),
         )
 
 

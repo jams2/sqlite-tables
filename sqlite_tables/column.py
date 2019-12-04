@@ -78,18 +78,7 @@ class DatabaseColumn(object):
                 'default value should not be specified for primary key columns'
             )
 
-    def prepare_string_default(self, default_str: str) -> str:
-        if default_str == '':
-            return '""'
-        if not default_str.startswith('"'):
-            default_str = f'"{default_str}'
-        if not default_str.endswith('"'):
-            default_str = f'{default_str}"'
-        return default_str
-
     def get_default_value_sql(self):
-        if self.sqlite_type == SQLiteType.TEXT:
-            return self.prepare_string_default(self.default)
         return self.default
 
     def get_definition_subs(self) -> dict:
@@ -160,6 +149,18 @@ class TextColumn(DatabaseColumn):
     ) -> None:
         super().__init__(column_name, SQLiteType.TEXT, default=default, **kwargs)
 
+    def prepare_string_default(self, default_str: str) -> str:
+        if default_str == "":
+            return "''"
+        if not default_str.startswith("'"):
+            default_str = f"'{default_str}"
+        if not default_str.endswith("'"):
+            default_str = f"{default_str}'"
+        return default_str
+
+    def get_default_value_sql(self):
+        return self.prepare_string_default(self.default)
+
 
 class NumericColumn(DatabaseColumn):
     def __init__(
@@ -169,3 +170,45 @@ class NumericColumn(DatabaseColumn):
         **kwargs,
     ) -> None:
         super().__init__(column_name, SQLiteType.NUMERIC, default=default, **kwargs)
+
+
+class DateTimeColumn(DatabaseColumn):
+    def __init__(
+        self,
+        column_name: str,
+        default: Optional[str] = None,
+        auto_now_insert: bool = False,
+        auto_now_update: bool = False,
+        **kwargs,
+    ) -> None:
+        if auto_now_insert:
+            default = 'CURRENT_TIMESTAMP'
+        super().__init__(column_name, SQLiteType.TEXT, default=default, **kwargs)
+
+
+class DateColumn(DatabaseColumn):
+    def __init__(
+        self,
+        column_name: str,
+        default: Optional[str] = None,
+        auto_now_insert: bool = False,
+        auto_now_update: bool = False,
+        **kwargs,
+    ) -> None:
+        if auto_now_insert:
+            default = 'CURRENT_DATE'
+        super().__init__(column_name, SQLiteType.TEXT, default=default, **kwargs)
+
+
+class TimeColumn(DatabaseColumn):
+    def __init__(
+        self,
+        column_name: str,
+        default: Optional[str] = None,
+        auto_now_insert: bool = False,
+        auto_now_update: bool = False,
+        **kwargs,
+    ) -> None:
+        if auto_now_insert:
+            default = 'CURRENT_TIME'
+        super().__init__(column_name, SQLiteType.TEXT, default=default, **kwargs)
