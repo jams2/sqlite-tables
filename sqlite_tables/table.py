@@ -40,7 +40,7 @@ class DatabaseTable(object):
         self.foreign_key_columns = filter(lambda x: x.is_foreign_key, columns)
         self.connection = connection
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         template = (
             '{!s}({!r}, columns={!r}, unique_together={!r}, raise_exists_error={!r})'
         )
@@ -52,7 +52,7 @@ class DatabaseTable(object):
             self.raise_exists_error,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '<{!s}: {!r}>'.format(self.__class__.__name__, self.table_name)
 
     def validate_columns(self) -> None:
