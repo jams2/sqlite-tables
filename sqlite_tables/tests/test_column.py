@@ -81,6 +81,13 @@ class TestColumnDefToSQL(unittest.TestCase):
             str(col),
         )
 
+    def test_default_empty_string(self):
+        col = TextColumn('test_col', default='')
+        self.assertEqual(
+            'DEFAULT ""',
+            col.get_definition_subs()['default_constraint'],
+        )
+
 
 class TestForeignKeyConstraintToSQL(unittest.TestCase):
     def test_fk_constraint_to_sql(self):

@@ -76,20 +76,23 @@ class DatabaseTable(object):
     def get_foreign_key_constraints_sql(self) -> Generator:
         return (x.fk_constraint_to_sql() for x in self.foreign_key_columns)
 
-    def get_substitutions(self) -> dict:
-        self.validate_columns()
-        substitutions: DefaultDict[str, str] = defaultdict(str)
-        substitutions['table_name'] = self.table_name
-        substitutions['column_defs'] = ', '.join(
+    def get_column_defs_sql(self) -> str:
+        return ', '.join(
             itertools.chain(
                 (x.definition_to_sql() for x in self.columns),
                 self.get_foreign_key_constraints_sql(),
                 self.get_unique_constraints_sql(),
             )
         )
+
+    def get_schema_definition_subs(self) -> dict:
+        self.validate_columns()
+        substitutions: DefaultDict[str, str] = defaultdict(str)
+        substitutions['table_name'] = self.table_name
+        substitutions['column_defs'] = self.get_column_defs_sql()
         if not self.raise_exists_error:
             substitutions['exists'] = SQLiteConstraint.IF_NOT_EXISTS.value
         return substitutions
 
     def schema_to_sql(self) -> str:
-        return self.schema_template.substitute(self.get_substitutions())
+        return self.schema_template.substitute(self.get_schema_definition_subs())

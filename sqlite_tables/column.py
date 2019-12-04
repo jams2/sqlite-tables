@@ -78,7 +78,21 @@ class DatabaseColumn(object):
                 'default value should not be specified for primary key columns'
             )
 
-    def get_def_substitutions(self) -> dict:
+    def prepare_string_default(self, default_str: str) -> str:
+        if default_str == '':
+            return '""'
+        if not default_str.startswith('"'):
+            default_str = f'"{default_str}'
+        if not default_str.endswith('"'):
+            default_str = f'{default_str}"'
+        return default_str
+
+    def get_default_value_sql(self):
+        if self.sqlite_type == SQLiteType.TEXT:
+            return self.prepare_string_default(self.default)
+        return self.default
+
+    def get_definition_subs(self) -> dict:
         self.validate_column_def_constraints()
         substitutions: DefaultDict[str, str] = defaultdict(str)
         substitutions['column_name'] = self.column_name
@@ -89,14 +103,14 @@ class DatabaseColumn(object):
             substitutions['unique_constraint'] = SQLiteConstraint.UNIQUE.value
         if self.default is not None:
             substitutions['default_constraint'] = (
-                f'{SQLiteConstraint.DEFAULT.value} {self.default}'
+                f'{SQLiteConstraint.DEFAULT.value} {self.get_default_value_sql()}'
             )
         if not self.allow_null:
             substitutions['null_constraint'] = SQLiteConstraint.NOT_NULL.value
         return substitutions
 
     def definition_to_sql(self) -> str:
-        return self.column_def_template.substitute(self.get_def_substitutions())
+        return self.column_def_template.substitute(self.get_definition_subs())
 
     def get_fk_constraint_substitutions(self) -> dict:
         substitutions = {
@@ -144,16 +158,7 @@ class TextColumn(DatabaseColumn):
         default: Optional[str] = None,
         **kwargs,
     ) -> None:
-        if default is not None:
-            default = self.add_quote_marks_to_string_default(default)
         super().__init__(column_name, SQLiteType.TEXT, default=default, **kwargs)
-
-    def add_quote_marks_to_string_default(self, default_str: str) -> str:
-        if not default_str.startswith('"'):
-            default_str = f'"{default_str}'
-        if not default_str.endswith('"'):
-            default_str = f'{default_str}"'
-        return default_str
 
 
 class NumericColumn(DatabaseColumn):
