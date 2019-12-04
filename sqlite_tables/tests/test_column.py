@@ -65,6 +65,22 @@ class TestColumnDefToSQL(unittest.TestCase):
         with self.assertRaises(InvalidColumnConfiguration):
             IntColumn('test_col', is_primary_key=True, default=2).definition_to_sql()
 
+    def test_repr(self):
+        col = TextColumn('test_col', unique=True, allow_null=False)
+        self.assertEqual(
+            f"TextColumn('test_col', SQLiteType.TEXT, allow_null=False, default=None, "
+            f"is_foreign_key=False, fk_column_ref=None, fk_table_ref=None, "
+            f"is_primary_key=False, unique=True)",
+            repr(col),
+        )
+
+    def test_str(self):
+        col = TextColumn('test_col', unique=True, allow_null=False)
+        self.assertEqual(
+            "<TextColumn: 'test_col'>",
+            str(col),
+        )
+
 
 class TestForeignKeyConstraintToSQL(unittest.TestCase):
     def test_fk_constraint_to_sql(self):

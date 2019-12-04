@@ -143,3 +143,26 @@ class TestTableToSQL(unittest.TestCase):
             f'UNIQUE (firstname, nickname))',
             table.schema_to_sql()
         )
+
+    def test_repr(self):
+        table = DatabaseTable(
+            'test_table',
+            columns=(IntColumn('id', is_primary_key=True),),
+        )
+        self.assertEqual(
+            f"DatabaseTable('test_table', columns=(IntColumn('id', SQLiteType.INT, "
+            f"allow_null=True, default=None, is_foreign_key=False, fk_column_ref=None, "
+            f"fk_table_ref=None, is_primary_key=True, unique=False),), "
+            f"unique_together=(), raise_exists_error=False)",
+            repr(table),
+        )
+
+    def test_str(self):
+        table = DatabaseTable(
+            'test_table',
+            columns=(IntColumn('id', is_primary_key=True),),
+        )
+        self.assertEqual(
+            "<DatabaseTable: 'test_table'>",
+            str(table),
+        )
