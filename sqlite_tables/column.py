@@ -11,6 +11,7 @@ from .utils import (
     SQLiteType,
     SQLiteTemplate,
     SQLiteConstraint,
+    SQLiteConstant,
 )
 
 
@@ -23,6 +24,10 @@ class DatabaseColumn(object):
     )
     foreign_key_constraint_template = SQLiteTemplate(
         'FOREIGN KEY ($column_name) REFERENCES $table_ref ($col_ref)'
+    )
+    trigger_expression_template = SQLiteTemplate(
+        f'UPDATE SET $column_name = $default_for_update WHERE $$primary_key_col = '
+        f'old.$$primary_key_col'
     )
 
     def __init__(
@@ -46,6 +51,7 @@ class DatabaseColumn(object):
         self.fk_table_ref = fk_table_ref
         self.is_primary_key = is_primary_key
         self.unique = unique
+        self.default_for_update: Optional[str] = None
 
     def __repr__(self):
         template = (
@@ -119,6 +125,17 @@ class DatabaseColumn(object):
             self.get_fk_constraint_substitutions()
         )
 
+    def get_trigger_expression_substitutions(self):
+        return {
+            'column_name': self.column_name,
+            'default_for_update': self.default_for_update,
+        }
+
+    def trigger_expression_to_sql(self):
+        return self.trigger_expression_template.substitute(
+            self.get_trigger_expression_substitutions()
+        )
+
 
 class IntColumn(DatabaseColumn):
     def __init__(
@@ -181,9 +198,14 @@ class DateTimeColumn(DatabaseColumn):
         auto_now_update: bool = False,
         **kwargs,
     ) -> None:
-        if auto_now_insert:
-            default = 'CURRENT_TIMESTAMP'
-        super().__init__(column_name, SQLiteType.TEXT, default=default, **kwargs)
+        super().__init__(
+            column_name,
+            SQLiteType.TEXT,
+            default=SQLiteConstant.CURRENT_TIMESTAMP.value if auto_now_insert else None,
+            **kwargs,
+        )
+        if auto_now_update:
+            self.default_for_update = SQLiteConstant.CURRENT_TIMESTAMP.value
 
 
 class DateColumn(DatabaseColumn):
@@ -195,9 +217,14 @@ class DateColumn(DatabaseColumn):
         auto_now_update: bool = False,
         **kwargs,
     ) -> None:
-        if auto_now_insert:
-            default = 'CURRENT_DATE'
-        super().__init__(column_name, SQLiteType.TEXT, default=default, **kwargs)
+        super().__init__(
+            column_name,
+            SQLiteType.TEXT,
+            default=SQLiteConstant.CURRENT_DATE.value if auto_now_insert else None,
+            **kwargs,
+        )
+        if auto_now_update:
+            self.default_for_update = SQLiteConstant.CURRENT_DATE.value
 
 
 class TimeColumn(DatabaseColumn):
@@ -209,6 +236,11 @@ class TimeColumn(DatabaseColumn):
         auto_now_update: bool = False,
         **kwargs,
     ) -> None:
-        if auto_now_insert:
-            default = 'CURRENT_TIME'
-        super().__init__(column_name, SQLiteType.TEXT, default=default, **kwargs)
+        super().__init__(
+            column_name,
+            SQLiteType.TEXT,
+            default=SQLiteConstant.CURRENT_TIME.value if auto_now_insert else None,
+            **kwargs,
+        )
+        if auto_now_update:
+            self.default_for_update = SQLiteConstant.CURRENT_TIME.value

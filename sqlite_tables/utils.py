@@ -52,6 +52,15 @@ class SQLiteType(str, Enum):
         return '{}.{}'.format(self.__class__.__name__, self.name)
 
 
+class SQLiteConstant(str, Enum):
+    CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP'
+    CURRENT_TIME = 'CURRENT_TIME'
+    CURRENT_DATE = 'CURRENT_DATE'
+
+    def __repr__(self):
+        return '{}.{}'.format(self.__class__.__name__, self.name)
+
+
 class SQLiteTemplate(Template):
     '''Overrides the substitute method to replace multiple occurences
     of whitespace with one.

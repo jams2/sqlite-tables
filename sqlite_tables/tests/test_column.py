@@ -162,3 +162,32 @@ class TestForeignKeyConstraintToSQL(unittest.TestCase):
                 is_foreign_key=True,
                 fk_table_ref='other_col',
             ).fk_constraint_to_sql()
+
+
+class TestTriggerExpressionToSQL(unittest.TestCase):
+    def test_auto_now_update_datetime(self):
+        col = DateTimeColumn('datetime', auto_now_insert=True, auto_now_update=True)
+        self.assertEqual(
+            f'UPDATE SET datetime = CURRENT_TIMESTAMP WHERE $primary_key_col = '
+            f'old.$primary_key_col',
+            col.trigger_expression_to_sql(),
+        )
+
+    def test_auto_now_update_date(self):
+        col = DateColumn('date', auto_now_insert=True, auto_now_update=True)
+        self.assertEqual(
+            f'UPDATE SET date = CURRENT_DATE WHERE $primary_key_col = '
+            f'old.$primary_key_col',
+            col.trigger_expression_to_sql(),
+        )
+
+    def test_auto_now_update_time(self):
+        col = TimeColumn('time', auto_now_insert=True, auto_now_update=True)
+        print()
+        print(col.trigger_expression_to_sql()
+        print()
+        self.assertEqual(
+            f'UPDATE SET time = CURRENT_TIME WHERE $primary_key_col = '
+            f'old.$primary_key_col',
+            col.trigger_expression_to_sql(),
+        )

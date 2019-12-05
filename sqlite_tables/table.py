@@ -23,6 +23,9 @@ class DatabaseTable(object):
         'CREATE TABLE $exists $table_name ($column_defs)'
     )
     unique_template = SQLiteTemplate('UNIQUE ($fields)')
+    trigger_template = SQLiteTemplate(
+        'CREATE TRIGGER $trigger_name $when $event ON $table_name BEGIN $expr; END'
+    )
 
     def __init__(
         self,
@@ -96,3 +99,6 @@ class DatabaseTable(object):
 
     def schema_to_sql(self) -> str:
         return self.schema_template.substitute(self.get_schema_definition_subs())
+
+    def triggers_to_sql(self) -> List[str]:
+        pass
