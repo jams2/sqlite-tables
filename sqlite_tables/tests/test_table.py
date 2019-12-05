@@ -8,23 +8,23 @@ from ..column import (
     DateColumn,
 )
 from ..exceptions import InvalidTableConfiguration
-from ..table import DatabaseTable
+from ..table import SQLiteTable
 
 
 class TestTableToSQL(unittest.TestCase):
     def test_no_column_names_raises(self):
         with self.assertRaises(InvalidTableConfiguration):
-            DatabaseTable('test_table').schema_to_sql()
+            SQLiteTable('test_table').schema_to_sql()
 
     def test_duplicate_columns_raises(self):
         with self.assertRaises(InvalidTableConfiguration):
-            DatabaseTable(
+            SQLiteTable(
                 'test_table',
                 columns=(IntColumn('new_column'), TextColumn('new_column')),
             ).schema_to_sql()
 
     def test_unique_together(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 TextColumn('firstname'),
@@ -39,7 +39,7 @@ class TestTableToSQL(unittest.TestCase):
         )
 
     def test_no_id_column(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 TextColumn('firstname'),
@@ -52,7 +52,7 @@ class TestTableToSQL(unittest.TestCase):
         )
 
     def test_specified_id_column(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 IntColumn('id', is_primary_key=True),
@@ -67,7 +67,7 @@ class TestTableToSQL(unittest.TestCase):
         )
 
     def test_unique_together_and_id(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 IntColumn('id', is_primary_key=True),
@@ -84,7 +84,7 @@ class TestTableToSQL(unittest.TestCase):
         )
 
     def test_foreign_key_constraint(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 IntColumn('id', is_primary_key=True),
@@ -104,7 +104,7 @@ class TestTableToSQL(unittest.TestCase):
         )
 
     def test_foreign_key_and_unique_together(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 IntColumn('id', is_primary_key=True),
@@ -126,7 +126,7 @@ class TestTableToSQL(unittest.TestCase):
         )
 
     def test_multiple_unique_constraints(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 IntColumn('id', is_primary_key=True),
@@ -148,12 +148,12 @@ class TestTableToSQL(unittest.TestCase):
         )
 
     def test_repr(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(IntColumn('id', is_primary_key=True),),
         )
         self.assertEqual(
-            f"DatabaseTable('test_table', columns=(IntColumn('id', SQLiteType.INT, "
+            f"SQLiteTable('test_table', columns=(IntColumn('id', SQLiteType.INT, "
             f"allow_null=True, default=None, is_foreign_key=False, fk_column_ref=None, "
             f"fk_table_ref=None, is_primary_key=True, unique=False),), "
             f"unique_together=(), raise_exists_error=False)",
@@ -161,19 +161,19 @@ class TestTableToSQL(unittest.TestCase):
         )
 
     def test_str(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(IntColumn('id', is_primary_key=True),),
         )
         self.assertEqual(
-            "<DatabaseTable: 'test_table'>",
+            "<SQLiteTable: 'test_table'>",
             str(table),
         )
 
 
 class TestTriggersToSQL(unittest.TestCase):
     def test_datetime_auto_update(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 DateTimeColumn('datetime', auto_now_insert=True, auto_now_update=True),
@@ -183,11 +183,11 @@ class TestTriggersToSQL(unittest.TestCase):
             f'CREATE TRIGGER test_table_datetime_update AFTER UPDATE ON test_table '
             f'BEGIN UPDATE test_table SET datetime = CURRENT_TIMESTAMP WHERE '
             f'rowid = old.rowid; END',
-            table.triggers_to_sql()[0],
+            list(table.triggers_to_sql())[0],
         )
 
     def test_date_auto_update(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 DateColumn('date', auto_now_insert=True, auto_now_update=True),
@@ -197,11 +197,11 @@ class TestTriggersToSQL(unittest.TestCase):
             f'CREATE TRIGGER test_table_date_update AFTER UPDATE ON test_table '
             f'BEGIN UPDATE test_table SET date = CURRENT_DATE WHERE '
             f'rowid = old.rowid; END',
-            table.triggers_to_sql()[0],
+            list(table.triggers_to_sql())[0],
         )
 
     def test_time_auto_update(self):
-        table = DatabaseTable(
+        table = SQLiteTable(
             'test_table',
             columns=(
                 TimeColumn('time', auto_now_insert=True, auto_now_update=True),
@@ -211,5 +211,5 @@ class TestTriggersToSQL(unittest.TestCase):
             f'CREATE TRIGGER test_table_time_update AFTER UPDATE ON test_table '
             f'BEGIN UPDATE test_table SET time = CURRENT_TIME WHERE '
             f'rowid = old.rowid; END',
-            table.triggers_to_sql()[0],
+            list(table.triggers_to_sql())[0],
         )

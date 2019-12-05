@@ -1,7 +1,7 @@
 import unittest
 import sqlite3
 
-from ..table import DatabaseTable
+from ..table import SQLiteTable
 from ..column import IntColumn
 from ..utils import (
     has_table,
@@ -16,7 +16,7 @@ CONN = sqlite3.connect(':memory:')
 
 class TestHasTable(unittest.TestCase):
     def test_has_table(self):
-        test_table = DatabaseTable(
+        test_table = SQLiteTable(
             'test_table',
             columns=(IntColumn('id', is_primary_key=True, allow_null=False),),
         )

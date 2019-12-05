@@ -1,4 +1,4 @@
-build.sh
+deploy_package.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

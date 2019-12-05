@@ -18,7 +18,7 @@ from .utils import (
 )
 
 
-class DatabaseTable(object):
+class SQLiteTable(object):
     schema_template = SQLiteTemplate(
         'CREATE TABLE $exists $table_name ($column_defs)'
     )
@@ -111,8 +111,7 @@ class DatabaseTable(object):
     def schema_to_sql(self) -> str:
         return self.schema_template.substitute(self.get_schema_definition_subs())
 
-    def triggers_to_sql(self) -> List[str]:
-        triggers = []
+    def triggers_to_sql(self) -> Generator:
         for column in self.columns:
             if column.default_for_update is not None:
                 expr_template = SQLiteTemplate(column.trigger_expression_to_sql())
@@ -128,5 +127,4 @@ class DatabaseTable(object):
                     'event': 'UPDATE',
                     'table_name': self.table_name,
                 }
-                triggers.append(self.trigger_template.substitute(substitutions))
-        return triggers
+                yield self.trigger_template.substitute(substitutions)
