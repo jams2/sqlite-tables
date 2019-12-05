@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="sqlite_tables",
-    version="0.0.2",
+    version="0.0.3",
     author="Joshua Munn",
     author_email="joshamunn@gmail.com",
     description="Classes for sqlite3 interaction",
