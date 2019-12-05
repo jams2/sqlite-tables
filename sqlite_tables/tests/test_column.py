@@ -168,26 +168,23 @@ class TestTriggerExpressionToSQL(unittest.TestCase):
     def test_auto_now_update_datetime(self):
         col = DateTimeColumn('datetime', auto_now_insert=True, auto_now_update=True)
         self.assertEqual(
-            f'UPDATE SET datetime = CURRENT_TIMESTAMP WHERE $primary_key_col = '
-            f'old.$primary_key_col',
+            f'UPDATE $table_name SET datetime = CURRENT_TIMESTAMP WHERE '
+            f'$primary_key_col = old.$primary_key_col',
             col.trigger_expression_to_sql(),
         )
 
     def test_auto_now_update_date(self):
         col = DateColumn('date', auto_now_insert=True, auto_now_update=True)
         self.assertEqual(
-            f'UPDATE SET date = CURRENT_DATE WHERE $primary_key_col = '
+            f'UPDATE $table_name SET date = CURRENT_DATE WHERE $primary_key_col = '
             f'old.$primary_key_col',
             col.trigger_expression_to_sql(),
         )
 
     def test_auto_now_update_time(self):
         col = TimeColumn('time', auto_now_insert=True, auto_now_update=True)
-        print()
-        print(col.trigger_expression_to_sql()
-        print()
         self.assertEqual(
-            f'UPDATE SET time = CURRENT_TIME WHERE $primary_key_col = '
+            f'UPDATE $table_name SET time = CURRENT_TIME WHERE $primary_key_col = '
             f'old.$primary_key_col',
             col.trigger_expression_to_sql(),
         )

@@ -42,6 +42,12 @@ class DatabaseTable(object):
         self.raise_exists_error = raise_exists_error
         self.foreign_key_columns = filter(lambda x: x.is_foreign_key, columns)
         self.connection = connection
+        try:
+            self.primary_key_col = list(
+                filter(lambda x: x.is_primary_key, self.columns)
+            )[0]
+        except IndexError:
+            self.primary_key_col = None
 
     def __repr__(self) -> str:
         template = (
@@ -57,6 +63,11 @@ class DatabaseTable(object):
 
     def __str__(self) -> str:
         return '<{!s}: {!r}>'.format(self.__class__.__name__, self.table_name)
+
+    def get_primary_key_col_name(self) -> str:
+        if self.primary_key_col is not None:
+            return self.primary_key_col.column_name
+        return 'rowid'
 
     def validate_columns(self) -> None:
         if len(self.columns) > len(self.column_names):
@@ -101,4 +112,21 @@ class DatabaseTable(object):
         return self.schema_template.substitute(self.get_schema_definition_subs())
 
     def triggers_to_sql(self) -> List[str]:
-        pass
+        triggers = []
+        for column in self.columns:
+            if column.default_for_update is not None:
+                expr_template = SQLiteTemplate(column.trigger_expression_to_sql())
+                substitutions = {
+                    'expr': expr_template.substitute(
+                        {
+                            'primary_key_col': self.get_primary_key_col_name(),
+                            'table_name': self.table_name,
+                        },
+                    ),
+                    'trigger_name': f'{self.table_name}_{column.column_name}_update',
+                    'when': 'AFTER',
+                    'event': 'UPDATE',
+                    'table_name': self.table_name,
+                }
+                triggers.append(self.trigger_template.substitute(substitutions))
+        return triggers

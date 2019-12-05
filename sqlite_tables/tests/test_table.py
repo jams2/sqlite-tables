@@ -3,6 +3,9 @@ import unittest
 from ..column import (
     IntColumn,
     TextColumn,
+    DateTimeColumn,
+    TimeColumn,
+    DateColumn,
 )
 from ..exceptions import InvalidTableConfiguration
 from ..table import DatabaseTable
@@ -165,4 +168,48 @@ class TestTableToSQL(unittest.TestCase):
         self.assertEqual(
             "<DatabaseTable: 'test_table'>",
             str(table),
+        )
+
+
+class TestTriggersToSQL(unittest.TestCase):
+    def test_datetime_auto_update(self):
+        table = DatabaseTable(
+            'test_table',
+            columns=(
+                DateTimeColumn('datetime', auto_now_insert=True, auto_now_update=True),
+            ),
+        )
+        self.assertEqual(
+            f'CREATE TRIGGER test_table_datetime_update AFTER UPDATE ON test_table '
+            f'BEGIN UPDATE test_table SET datetime = CURRENT_TIMESTAMP WHERE '
+            f'rowid = old.rowid; END',
+            table.triggers_to_sql()[0],
+        )
+
+    def test_date_auto_update(self):
+        table = DatabaseTable(
+            'test_table',
+            columns=(
+                DateColumn('date', auto_now_insert=True, auto_now_update=True),
+            ),
+        )
+        self.assertEqual(
+            f'CREATE TRIGGER test_table_date_update AFTER UPDATE ON test_table '
+            f'BEGIN UPDATE test_table SET date = CURRENT_DATE WHERE '
+            f'rowid = old.rowid; END',
+            table.triggers_to_sql()[0],
+        )
+
+    def test_time_auto_update(self):
+        table = DatabaseTable(
+            'test_table',
+            columns=(
+                TimeColumn('time', auto_now_insert=True, auto_now_update=True),
+            ),
+        )
+        self.assertEqual(
+            f'CREATE TRIGGER test_table_time_update AFTER UPDATE ON test_table '
+            f'BEGIN UPDATE test_table SET time = CURRENT_TIME WHERE '
+            f'rowid = old.rowid; END',
+            table.triggers_to_sql()[0],
         )

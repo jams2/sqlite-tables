@@ -15,9 +15,6 @@ from .utils import (
 )
 
 
-CASCADE = 'CASCADE'
-
-
 class DatabaseColumn(object):
     column_def_template = SQLiteTemplate(
         '$column_name $type $null_constraint $default_constraint $unique_constraint'
@@ -26,8 +23,8 @@ class DatabaseColumn(object):
         'FOREIGN KEY ($column_name) REFERENCES $table_ref ($col_ref)'
     )
     trigger_expression_template = SQLiteTemplate(
-        f'UPDATE SET $column_name = $default_for_update WHERE $$primary_key_col = '
-        f'old.$$primary_key_col'
+        f'UPDATE $$table_name SET $column_name = $default_for_update WHERE '
+        f'$$primary_key_col = old.$$primary_key_col'
     )
 
     def __init__(
