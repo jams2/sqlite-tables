@@ -4,9 +4,12 @@ from functools import wraps
 from typing import (
     Optional,
     List,
+    Dict,
+    Any,
 )
 
 from .table import SQLiteTable
+from .utils import SQLiteTemplate
 
 
 def db_transaction(func):
@@ -27,9 +30,13 @@ def db_transaction(func):
 
 
 class SQLiteDatabase(object):
+    insert_template = SQLiteTemplate(
+        'INSERT INTO $table ($columns) VALUES ($value_template)'
+    )
+
     def __init__(
         self,
-        path: pathlib.Path,
+        path: Optional[pathlib.Path] = None,
         tables: List[SQLiteTable] = None,
         connection: Optional[sqlite3.Connection] = None,
     ):
@@ -38,6 +45,7 @@ class SQLiteDatabase(object):
             self.connection = connection
         else:
             self.connection = sqlite3.connect(path)
+        self.connection.row_factory = sqlite3.Row
         self.tables = tables
         self.existing_tables = self.get_existing_tables()
 
@@ -54,3 +62,12 @@ class SQLiteDatabase(object):
             self.connection.execute(table.schema_to_sql())
             for trigger_def in table.triggers_to_sql():
                 self.connection.execute(trigger_def)
+
+    @db_transaction
+    def insert(self, table: str, value_dict: Dict[str, Any]):
+        insert_statement = self.insert_template.substitute({
+            'table': table,
+            'columns': ', '.join(value_dict.keys()),
+            'value_template': ', '.join(f':{x}' for x in value_dict.keys()),
+        })
+        self.connection.execute(insert_statement, value_dict)
