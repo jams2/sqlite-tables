@@ -112,19 +112,18 @@ class SQLiteTable(object):
         return self.schema_template.substitute(self.get_schema_definition_subs())
 
     def triggers_to_sql(self) -> Generator:
-        for column in self.columns:
-            if column.default_for_update is not None:
-                expr_template = SQLiteTemplate(column.trigger_expression_to_sql())
-                substitutions = {
-                    'expr': expr_template.substitute(
-                        {
-                            'primary_key_col': self.get_primary_key_col_name(),
-                            'table_name': self.table_name,
-                        },
-                    ),
-                    'trigger_name': f'{self.table_name}_{column.column_name}_update',
-                    'when': 'AFTER',
-                    'event': 'UPDATE',
-                    'table_name': self.table_name,
-                }
-                yield self.trigger_template.substitute(substitutions)
+        for column in filter(None, self.columns):
+            expr_template = SQLiteTemplate(column.trigger_expression_to_sql())
+            substitutions = {
+                'expr': expr_template.substitute(
+                    {
+                        'primary_key_col': self.get_primary_key_col_name(),
+                        'table_name': self.table_name,
+                    },
+                ),
+                'trigger_name': f'{self.table_name}_{column.column_name}_update',
+                'when': 'AFTER',
+                'event': 'UPDATE',
+                'table_name': self.table_name,
+            }
+            yield self.trigger_template.substitute(substitutions)
