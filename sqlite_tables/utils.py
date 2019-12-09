@@ -1,23 +1,12 @@
 import re
 import sqlite3
 from enum import Enum
-from functools import wraps
-from pathlib import Path
 from string import Template
 
-
-def db_transaction(func):
-    @wraps(func)
-    def with_connection_context_manager(*args, **kwargs):
-        if not isinstance(args[0], sqlite3.Connection):
-            raise ValueError(
-                'First positional argument to function wrapped with "db_transaction" '
-                'must be of type sqlite3.Connection'
-            )
-        db_connection = args[0]
-        with db_connection:
-            return func(*args, **kwargs)
-    return with_connection_context_manager
+from .database import (
+    SQLiteDatabase,
+    db_transaction,
+)
 
 
 @db_transaction
