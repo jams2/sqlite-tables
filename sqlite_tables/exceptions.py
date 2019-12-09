@@ -4,3 +4,7 @@ class InvalidColumnConfiguration(Exception):
 
 class InvalidTableConfiguration(Exception):
     pass
+
+
+class InvalidDatabaseConfiguration(Exception):
+    pass

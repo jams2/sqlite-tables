@@ -10,6 +10,7 @@ from typing import (
 
 from .table import SQLiteTable
 from .utils import SQLiteTemplate
+from .exceptions import InvalidDatabaseConfiguration
 
 
 def db_transaction(func):
@@ -41,7 +42,11 @@ class SQLiteDatabase(object):
         connection: Optional[sqlite3.Connection] = None,
     ):
         self.path = path
-        if connection is not None:
+        if path is not None and connection is not None:
+            raise InvalidDatabaseConfiguration(
+                'Specify either connection object or path'
+            )
+        elif connection is not None:
             self.connection = connection
         else:
             self.connection = sqlite3.connect(path)

@@ -4,6 +4,7 @@ import sqlite3
 from pathlib import Path
 
 from ..database import SQLiteDatabase
+from ..exceptions import InvalidDatabaseConfiguration
 
 
 FIXTURE = Path('./sqlite_tables/tests/test_table.sql')
@@ -16,12 +17,18 @@ class TestDBSetup(unittest.TestCase):
         db = SQLiteDatabase(':memory:')
         self.assertIsInstance(db.connection, sqlite3.Connection)
 
+    def test_invalid_path_and_connection_config(self):
+        path = Path('~/test_db.db').expanduser()
+        conn = sqlite3.connect(':memory:')
+        with self.assertRaises(InvalidDatabaseConfiguration):
+            SQLiteDatabase(path=path, connection=conn)
+
     def test_enumerates_tables(self):
         conn = sqlite3.connect(':memory:')
         with open(FIXTURE) as fd:
             with conn:
                 conn.executescript(''.join(line for line in fd))
-        db = SQLiteDatabase('', connection=conn)
+        db = SQLiteDatabase(connection=conn)
         self.assertEqual(['test_table'], db.existing_tables)
 
     def test_insert_single(self):
@@ -29,7 +36,7 @@ class TestDBSetup(unittest.TestCase):
         with open(FIXTURE) as fd:
             with conn:
                 conn.executescript(''.join(line for line in fd))
-        db = SQLiteDatabase('', connection=conn)
+        db = SQLiteDatabase(connection=conn)
         db.insert('test_table', {'firstname': 'testuser'})
         match = db.connection.execute(
             "SELECT firstname FROM test_table WHERE firstname = 'testuser'"
@@ -41,7 +48,7 @@ class TestDBSetup(unittest.TestCase):
         with open(FIXTURE) as fd:
             with conn:
                 conn.executescript(''.join(line for line in fd))
-        db = SQLiteDatabase('', connection=conn)
+        db = SQLiteDatabase(connection=conn)
         db.insert('test_table', {'firstname': 'test', 'lastname': 'user'})
         match = db.connection.execute(
             "SELECT * FROM test_table WHERE firstname = 'test'"
