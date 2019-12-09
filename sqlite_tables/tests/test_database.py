@@ -22,4 +22,4 @@ class TestDBSetup(unittest.TestCase):
             with conn:
                 conn.executescript(''.join(line for line in fd))
         db = SQLiteDatabase('', connection=conn)
-        self.assertEqual(['test_table'], db.tables)
+        self.assertEqual(['test_table'], db.existing_tables)

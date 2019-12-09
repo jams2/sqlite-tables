@@ -10,7 +10,7 @@ from ..column import (
     TimeColumn,
 )
 from ..exceptions import InvalidColumnConfiguration
-from ..utils import SQLiteType
+from ..enums import SQLiteType
 
 
 class TestColumnDefToSQL(unittest.TestCase):

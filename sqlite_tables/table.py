@@ -11,11 +11,9 @@ from typing import (
 )
 
 from .exceptions import InvalidTableConfiguration
-from .column import DatabaseColumn
-from .utils import (
-    SQLiteTemplate,
-    SQLiteConstraint,
-)
+from .column import SQLiteColumn
+from .enums import SQLiteConstraint
+from .utils import SQLiteTemplate
 
 
 class SQLiteTable(object):
@@ -30,7 +28,7 @@ class SQLiteTable(object):
     def __init__(
         self,
         table_name: str,
-        columns: Union[List[DatabaseColumn], Tuple[DatabaseColumn], tuple] = (),
+        columns: Union[List[SQLiteColumn], Tuple[SQLiteColumn], tuple] = (),
         unique_together: Union[Tuple[str], Tuple[Tuple], Tuple] = (),
         raise_exists_error: bool = False,
         connection: Optional[sqlite3.Connection] = None,

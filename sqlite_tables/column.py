@@ -7,15 +7,15 @@ from typing import (
 )
 
 from .exceptions import InvalidColumnConfiguration
-from .utils import (
+from .enums import (
     SQLiteType,
-    SQLiteTemplate,
     SQLiteConstraint,
     SQLiteConstant,
 )
+from .utils import SQLiteTemplate
 
 
-class DatabaseColumn(object):
+class SQLiteColumn(object):
     column_def_template = SQLiteTemplate(
         '$column_name $type $null_constraint $default_constraint $unique_constraint'
     )
@@ -134,7 +134,7 @@ class DatabaseColumn(object):
         )
 
 
-class IntColumn(DatabaseColumn):
+class IntColumn(SQLiteColumn):
     def __init__(
         self,
         column_name: str,
@@ -144,7 +144,7 @@ class IntColumn(DatabaseColumn):
         super().__init__(column_name, SQLiteType.INT, default=default, **kwargs)
 
 
-class RealColumn(DatabaseColumn):
+class RealColumn(SQLiteColumn):
     def __init__(
         self,
         column_name: str,
@@ -154,7 +154,7 @@ class RealColumn(DatabaseColumn):
         super().__init__(column_name, SQLiteType.REAL, default=default, **kwargs)
 
 
-class TextColumn(DatabaseColumn):
+class TextColumn(SQLiteColumn):
     def __init__(
         self,
         column_name: str,
@@ -176,7 +176,7 @@ class TextColumn(DatabaseColumn):
         return self.prepare_string_default(self.default)
 
 
-class NumericColumn(DatabaseColumn):
+class NumericColumn(SQLiteColumn):
     def __init__(
         self,
         column_name: str,
@@ -186,7 +186,7 @@ class NumericColumn(DatabaseColumn):
         super().__init__(column_name, SQLiteType.NUMERIC, default=default, **kwargs)
 
 
-class DateTimeColumn(DatabaseColumn):
+class DateTimeColumn(SQLiteColumn):
     def __init__(
         self,
         column_name: str,
@@ -205,7 +205,7 @@ class DateTimeColumn(DatabaseColumn):
             self.default_for_update = SQLiteConstant.CURRENT_TIMESTAMP.value
 
 
-class DateColumn(DatabaseColumn):
+class DateColumn(SQLiteColumn):
     def __init__(
         self,
         column_name: str,
@@ -224,7 +224,7 @@ class DateColumn(DatabaseColumn):
             self.default_for_update = SQLiteConstant.CURRENT_DATE.value
 
 
-class TimeColumn(DatabaseColumn):
+class TimeColumn(SQLiteColumn):
     def __init__(
         self,
         column_name: str,

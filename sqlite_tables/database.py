@@ -1,7 +1,12 @@
 import sqlite3
 import pathlib
 from functools import wraps
-from typing import Optional
+from typing import (
+    Optional,
+    List,
+)
+
+from .table import SQLiteTable
 
 
 def db_transaction(func):
@@ -25,6 +30,7 @@ class SQLiteDatabase(object):
     def __init__(
         self,
         path: pathlib.Path,
+        tables: List[SQLiteTable] = None,
         connection: Optional[sqlite3.Connection] = None,
     ):
         self.path = path
@@ -32,11 +38,19 @@ class SQLiteDatabase(object):
             self.connection = connection
         else:
             self.connection = sqlite3.connect(path)
-        self.tables = self.get_tables()
+        self.tables = tables
+        self.existing_tables = self.get_existing_tables()
 
     @db_transaction
-    def get_tables(self):
+    def get_existing_tables(self):
         return [x[0] for x in self.connection.execute(
             'SELECT name FROM sqlite_master WHERE type = :type_arg',
             {'type_arg': 'table'},
         )]
+
+    @db_transaction
+    def do_creation(self) -> None:
+        for table in self.tables:
+            self.connection.execute(table.schema_to_sql())
+            for trigger_def in table.triggers_to_sql():
+                self.connection.execute(trigger_def)
