@@ -71,6 +71,9 @@ class SQLiteColumn(object):
     def __str__(self):
         return '<{!s}: {!r}>'.format(self.__class__.__name__, self.column_name)
 
+    def requires_trigger(self):
+        return self.default_for_update is not None
+
     def validate_column_def_constraints(self) -> None:
         if self.is_primary_key and self.unique:
             raise InvalidColumnConfiguration(

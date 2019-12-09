@@ -110,7 +110,7 @@ class SQLiteTable(object):
         return self.schema_template.substitute(self.get_schema_definition_subs())
 
     def triggers_to_sql(self) -> Generator:
-        for column in filter(None, self.columns):
+        for column in filter(lambda x: x.requires_trigger(), self.columns):
             expr_template = SQLiteTemplate(column.trigger_expression_to_sql())
             substitutions = {
                 'expr': expr_template.substitute(
