@@ -1,8 +1,6 @@
-import sqlite3
 from collections import defaultdict
 import itertools
 from typing import (
-    Optional,
     Union,
     List,
     Tuple,
@@ -31,7 +29,6 @@ class SQLiteTable(object):
         columns: Union[List[SQLiteColumn], Tuple[SQLiteColumn], tuple] = (),
         unique_together: Union[Tuple[str], Tuple[Tuple], Tuple] = (),
         raise_exists_error: bool = False,
-        connection: Optional[sqlite3.Connection] = None,
     ):
         self.table_name = table_name
         self.columns = columns
@@ -39,7 +36,6 @@ class SQLiteTable(object):
         self.unique_together = unique_together
         self.raise_exists_error = raise_exists_error
         self.foreign_key_columns = filter(lambda x: x.is_foreign_key, columns)
-        self.connection = connection
         try:
             self.primary_key_col = list(
                 filter(lambda x: x.is_primary_key, self.columns)
