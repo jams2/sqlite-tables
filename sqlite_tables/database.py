@@ -18,7 +18,7 @@ def db_transaction(func):
     def with_connection_context_manager(*args, **kwargs):
         if isinstance(args[0], sqlite3.Connection):
             db_connection = args[0]
-        elif isinstance(args[0], SQLiteDatabase):
+        elif hasattr(args[0], 'connection'):
             db_connection = args[0].connection
         else:
             raise ValueError(

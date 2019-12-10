@@ -1,15 +1,9 @@
 import unittest
-import sqlite3
 
-from ..table import SQLiteTable
-from ..column import IntColumn
 from ..enums import (
     SQLiteConstraint,
     SQLiteType,
 )
-
-
-CONN = sqlite3.connect(':memory:')
 
 
 class TestSQLiteTemplate(unittest.TestCase):
