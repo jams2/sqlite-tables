@@ -12,6 +12,29 @@ from ..table import SQLiteTable
 
 
 class TestTableToSQL(unittest.TestCase):
+    def test_gets_specified_primary_key_column_name(self):
+        table = SQLiteTable(
+            'test_table',
+            columns=(
+                IntColumn('id', is_primary_key=True),
+                TextColumn('firstname'),
+            ),
+        )
+        self.assertEqual(
+            table.get_primary_key_col_name(),
+            'id',
+        )
+
+    def test_gets_auto_pk_column_name(self):
+        table = SQLiteTable(
+            'test_table',
+            columns=(TextColumn('firstname'),),
+        )
+        self.assertEqual(
+            table.get_primary_key_col_name(),
+            'rowid',
+        )
+
     def test_no_column_names_raises(self):
         with self.assertRaises(InvalidTableConfiguration):
             SQLiteTable('test_table').schema_to_sql()

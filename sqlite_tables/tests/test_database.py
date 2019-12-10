@@ -3,7 +3,10 @@ import os
 import sqlite3
 from pathlib import Path
 
-from ..database import SQLiteDatabase
+from ..database import (
+    SQLiteDatabase,
+    db_transaction,
+)
 from ..exceptions import InvalidDatabaseConfiguration
 
 
@@ -31,6 +34,8 @@ class TestDBSetup(unittest.TestCase):
         db = SQLiteDatabase(connection=conn)
         self.assertEqual(['test_table'], db.existing_tables)
 
+
+class TestInsert(unittest.TestCase):
     def test_insert_single(self):
         conn = sqlite3.connect(':memory:')
         with open(FIXTURE) as fd:
@@ -55,3 +60,31 @@ class TestDBSetup(unittest.TestCase):
         ).fetchone()
         self.assertEqual('test', match['firstname'])
         self.assertEqual('user', match['lastname'])
+
+
+class TestTransactionWrapper(unittest.TestCase):
+    def get_wrapped_test_func(self):
+        @db_transaction
+        def wrapped_test_func(x):
+            return x
+        return wrapped_test_func
+
+    def test_not_receives_connection(self):
+        """Must recieve a connection or class instance that
+        hasattr(self, 'connection')
+        """
+        with self.assertRaises(ValueError):
+            self.get_wrapped_test_func()(1)
+
+    def test_receives_connection_object(self):
+        conn = sqlite3.connect(':memory:')
+        self.assertEqual(self.get_wrapped_test_func()(conn), conn)
+
+    def test_handles_class_with_connection(self):
+        class TestObject(object):
+            def __init__(self):
+                self.connection = sqlite3.connect(':memory:')
+        self.assertIsInstance(
+            self.get_wrapped_test_func()(TestObject()).connection,
+            sqlite3.Connection,
+        )
