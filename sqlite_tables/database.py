@@ -2,15 +2,21 @@ import sqlite3
 import pathlib
 from functools import wraps
 from typing import (
+    Callable,
     Optional,
     List,
     Dict,
     Any,
+    Tuple,
 )
 
 from .table import SQLiteTable
 from .utils import SQLiteTemplate
 from .exceptions import InvalidDatabaseConfiguration
+from .types import (
+    adapt_bool,
+    convert_bool,
+)
 
 
 def db_transaction(func):
@@ -38,8 +44,10 @@ class SQLiteDatabase(object):
     def __init__(
         self,
         path: Optional[pathlib.Path] = None,
-        tables: List[SQLiteTable] = None,
+        tables: List[SQLiteTable] = [],
         connection: Optional[sqlite3.Connection] = None,
+        adapters: Tuple[Tuple[Any, Callable]] = ((bool, adapt_bool),),
+        converters: Tuple[Tuple[str, Callable]] = (('BOOL', convert_bool),),
     ):
         self.path = path
         if path is not None and connection is not None:
@@ -49,10 +57,23 @@ class SQLiteDatabase(object):
         elif connection is not None:
             self.connection = connection
         else:
-            self.connection = sqlite3.connect(path)
+            self.register_adapters(adapters)
+            self.register_converters(converters)
+            self.connection = sqlite3.connect(
+                path,
+                detect_types=sqlite3.PARSE_DECLTYPES,
+            )
         self.connection.row_factory = sqlite3.Row
         self.tables = tables
         self.existing_tables = self.get_existing_tables()
+
+    def register_adapters(self, adapters: Tuple[Tuple[Any, Callable]]) -> None:
+        for python_type, adapter_func in adapters:
+            sqlite3.register_adapter(python_type, adapter_func)
+
+    def register_converters(self, converters: Tuple[Tuple[str, Callable]]) -> None:
+        for declared_type, converter_func in converters:
+            sqlite3.register_converter(declared_type, converter_func)
 
     @db_transaction
     def get_existing_tables(self):
