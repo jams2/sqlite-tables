@@ -244,3 +244,13 @@ class TimeColumn(SQLiteColumn):
         )
         if auto_now_update:
             self.default_for_update = SQLiteConstant.CURRENT_TIME.value
+
+
+class BoolColumn(SQLiteColumn):
+    def __init__(
+        self,
+        column_name: str,
+        default: Optional[bool] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(column_name, SQLiteType.BOOL, default=default, **kwargs)
