@@ -10,12 +10,16 @@ from typing import (
     Tuple,
 )
 
+from .enums import SQLiteType
 from .table import SQLiteTable
 from .utils import SQLiteTemplate
 from .exceptions import InvalidDatabaseConfiguration
 from .types import (
+    IntList,
     adapt_bool,
     convert_bool,
+    adapt_int_list,
+    convert_int_list,
 )
 
 
@@ -38,7 +42,15 @@ def db_transaction(func):
 
 class SQLiteDatabase(object):
     insert_template = SQLiteTemplate(
-        'INSERT INTO $table ($columns) VALUES ($value_template)'
+        'INSERT INTO $table_name ($column_names) VALUES ($value_template)'
+    )
+    default_adapters = (
+        (bool, adapt_bool),
+        (IntList, adapt_int_list),
+    )
+    default_converters = (
+        (SQLiteType.BOOL, convert_bool),
+        (SQLiteType.INT_LIST, convert_int_list),
     )
 
     def __init__(
@@ -46,8 +58,8 @@ class SQLiteDatabase(object):
         path: Optional[pathlib.Path] = None,
         tables: List[SQLiteTable] = [],
         connection: Optional[sqlite3.Connection] = None,
-        adapters: Tuple[Tuple[Any, Callable]] = ((bool, adapt_bool),),
-        converters: Tuple[Tuple[str, Callable]] = (('BOOL', convert_bool),),
+        adapters: Tuple = (),
+        converters: Tuple = (),
     ):
         self.path = path
         if path is not None and connection is not None:
@@ -57,14 +69,14 @@ class SQLiteDatabase(object):
         elif connection is not None:
             self.connection = connection
         else:
-            self.register_adapters(adapters)
-            self.register_converters(converters)
+            self.register_adapters(self.default_adapters + adapters)
+            self.register_converters(self.default_converters + converters)
             self.connection = sqlite3.connect(
                 path,
                 detect_types=sqlite3.PARSE_DECLTYPES,
             )
         self.connection.row_factory = sqlite3.Row
-        self.tables = tables
+        self.tables = {table.table_name: table for table in tables}
         self.existing_tables = self.get_existing_tables()
 
     def register_adapters(self, adapters: Tuple[Tuple[Any, Callable]]) -> None:
@@ -84,16 +96,26 @@ class SQLiteDatabase(object):
 
     @db_transaction
     def do_creation(self) -> None:
-        for table in self.tables:
+        for table in self.tables.values():
             self.connection.execute(table.schema_to_sql())
             for trigger_def in table.triggers_to_sql():
                 self.connection.execute(trigger_def)
 
     @db_transaction
-    def insert(self, table: str, value_dict: Dict[str, Any]):
+    def insert(self, table_name: str, value_dict: Dict[str, Any]):
+        try:
+            table = self.tables[table_name]
+        except KeyError:
+            raise ValueError(f'Database has no table: "{table_name}"')
+        for column_name, value in value_dict.items():
+            try:
+                column = table.columns[column_name]
+            except KeyError:
+                raise ValueError(f'Table "{table_name}" has no Column "{column_name}"')
+            value_dict[column_name] = column.prepare_for_insert(value)
         insert_statement = self.insert_template.substitute({
-            'table': table,
-            'columns': ', '.join(value_dict.keys()),
+            'table_name': table_name,
+            'column_names': ', '.join(value_dict.keys()),
             'value_template': ', '.join(f':{x}' for x in value_dict.keys()),
         })
         self.connection.execute(insert_statement, value_dict)

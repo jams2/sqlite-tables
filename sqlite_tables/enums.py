@@ -19,6 +19,7 @@ class SQLiteType(str, Enum):
     NUMERIC = 'NUMERIC'
     BLOB = 'BLOB'
     BOOL = 'BOOL'
+    INT_LIST = 'INT_LIST'
 
     def __repr__(self):
         return '{}.{}'.format(self.__class__.__name__, self.name)

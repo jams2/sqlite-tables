@@ -31,14 +31,13 @@ class SQLiteTable(object):
         raise_exists_error: bool = False,
     ):
         self.table_name = table_name
-        self.columns = columns
-        self.column_names = {x.column_name for x in columns}
+        self.columns = {column.column_name: column for column in columns}
         self.unique_together = unique_together
         self.raise_exists_error = raise_exists_error
         self.foreign_key_columns = filter(lambda x: x.is_foreign_key, columns)
         try:
             self.primary_key_col = list(
-                filter(lambda x: x.is_primary_key, self.columns)
+                filter(lambda x: x.is_primary_key, self.columns.values())
             )[0]
         except IndexError:
             self.primary_key_col = None
@@ -50,7 +49,7 @@ class SQLiteTable(object):
         return template.format(
             self.__class__.__name__,
             self.table_name,
-            self.columns,
+            tuple(self.columns.values()),
             self.unique_together,
             self.raise_exists_error,
         )
@@ -64,9 +63,7 @@ class SQLiteTable(object):
         return 'rowid'
 
     def validate_columns(self) -> None:
-        if len(self.columns) > len(self.column_names):
-            raise InvalidTableConfiguration('Column names must be unique')
-        if len(self.columns) == 0:
+        if len(self.columns.keys()) == 0:
             raise InvalidTableConfiguration('Cannot create table without columns')
 
     def get_unique_constraints_sql(self) -> Union[Generator, tuple]:
@@ -87,7 +84,7 @@ class SQLiteTable(object):
     def get_column_defs_sql(self) -> str:
         return ', '.join(
             itertools.chain(
-                (x.definition_to_sql() for x in self.columns),
+                (x.definition_to_sql() for x in self.columns.values()),
                 self.get_foreign_key_constraints_sql(),
                 self.get_unique_constraints_sql(),
             )
@@ -106,7 +103,7 @@ class SQLiteTable(object):
         return self.schema_template.substitute(self.get_schema_definition_subs())
 
     def triggers_to_sql(self) -> Generator:
-        for column in filter(lambda x: x.requires_trigger(), self.columns):
+        for column in filter(lambda x: x.requires_trigger(), self.columns.values()):
             expr_template = SQLiteTemplate(column.trigger_expression_to_sql())
             substitutions = {
                 'expr': expr_template.substitute(

@@ -39,13 +39,6 @@ class TestTableToSQL(unittest.TestCase):
         with self.assertRaises(InvalidTableConfiguration):
             SQLiteTable('test_table').schema_to_sql()
 
-    def test_duplicate_columns_raises(self):
-        with self.assertRaises(InvalidTableConfiguration):
-            SQLiteTable(
-                'test_table',
-                columns=(IntColumn('new_column'), TextColumn('new_column')),
-            ).schema_to_sql()
-
     def test_unique_together(self):
         table = SQLiteTable(
             'test_table',

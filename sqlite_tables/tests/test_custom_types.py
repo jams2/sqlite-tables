@@ -107,10 +107,10 @@ class TestIntIterType(unittest.TestCase):
         def converter(val):
             return val
         sqlite3.register_adapter(IntList, adapt_int_list)
-        sqlite3.register_converter('INTLIST', converter)
+        sqlite3.register_converter('INT_LIST', converter)
         with self.conn:
             self.conn.execute(
-                'CREATE TABLE test_table (test_intlist INTLIST, name TEXT)'
+                'CREATE TABLE test_table (test_intlist INT_LIST, name TEXT)'
             )
             self.conn.execute(
                 'INSERT INTO test_table VALUES (?, ?)',
@@ -123,10 +123,10 @@ class TestIntIterType(unittest.TestCase):
         def converter(val):
             return val
         sqlite3.register_adapter(IntList, adapt_int_list)
-        sqlite3.register_converter('INTLIST', converter)
+        sqlite3.register_converter('INT_LIST', converter)
         with self.conn:
             self.conn.execute(
-                'CREATE TABLE test_table (test_intlist INTLIST, name TEXT)'
+                'CREATE TABLE test_table (test_intlist INT_LIST, name TEXT)'
             )
             self.conn.execute(
                 'INSERT INTO test_table VALUES (?, ?)',
@@ -137,10 +137,10 @@ class TestIntIterType(unittest.TestCase):
 
     def test_fetch_int_list(self):
         sqlite3.register_adapter(IntList, adapt_int_list)
-        sqlite3.register_converter('INTLIST', convert_int_list)
+        sqlite3.register_converter('INT_LIST', convert_int_list)
         with self.conn:
             self.conn.execute(
-                'CREATE TABLE test_table (test_intlist INTLIST, name TEXT)'
+                'CREATE TABLE test_table (test_intlist INT_LIST, name TEXT)'
             )
             self.conn.execute(
                 'INSERT INTO test_table VALUES (?, ?)',
@@ -151,10 +151,10 @@ class TestIntIterType(unittest.TestCase):
 
     def test_fetch_int_list_with_negatives(self):
         sqlite3.register_adapter(IntList, adapt_int_list)
-        sqlite3.register_converter('INTLIST', convert_int_list)
+        sqlite3.register_converter('INT_LIST', convert_int_list)
         with self.conn:
             self.conn.execute(
-                'CREATE TABLE test_table (test_intlist INTLIST, name TEXT)'
+                'CREATE TABLE test_table (test_intlist INT_LIST, name TEXT)'
             )
             self.conn.execute(
                 'INSERT INTO test_table VALUES (?, ?)',

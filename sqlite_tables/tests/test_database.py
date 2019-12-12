@@ -1,5 +1,4 @@
 import unittest
-import os
 import sqlite3
 from pathlib import Path
 
@@ -8,6 +7,11 @@ from ..database import (
     db_transaction,
 )
 from ..exceptions import InvalidDatabaseConfiguration
+from ..table import SQLiteTable
+from ..column import (
+    TextColumn,
+    IntListColumn,
+)
 
 
 FIXTURE = Path('./sqlite_tables/tests/test_table.sql')
@@ -37,11 +41,18 @@ class TestDBSetup(unittest.TestCase):
 
 class TestInsert(unittest.TestCase):
     def test_insert_single(self):
-        conn = sqlite3.connect(':memory:')
-        with open(FIXTURE) as fd:
-            with conn:
-                conn.executescript(''.join(line for line in fd))
-        db = SQLiteDatabase(connection=conn)
+        table = SQLiteTable(
+            'test_table',
+            columns=(
+                TextColumn('firstname'),
+                TextColumn('lastname'),
+            ),
+        )
+        db = SQLiteDatabase(
+            ':memory:',
+            tables=(table,)
+        )
+        db.do_creation()
         db.insert('test_table', {'firstname': 'testuser'})
         match = db.connection.execute(
             "SELECT firstname FROM test_table WHERE firstname = 'testuser'"
@@ -49,17 +60,43 @@ class TestInsert(unittest.TestCase):
         self.assertEqual('testuser', match['firstname'])
 
     def test_insert_multiple(self):
-        conn = sqlite3.connect(':memory:')
-        with open(FIXTURE) as fd:
-            with conn:
-                conn.executescript(''.join(line for line in fd))
-        db = SQLiteDatabase(connection=conn)
+        table = SQLiteTable(
+            'test_table',
+            columns=(
+                TextColumn('firstname'),
+                TextColumn('lastname'),
+            ),
+        )
+        db = SQLiteDatabase(
+            ':memory:',
+            tables=(table,)
+        )
+        db.do_creation()
         db.insert('test_table', {'firstname': 'test', 'lastname': 'user'})
         match = db.connection.execute(
             "SELECT * FROM test_table WHERE firstname = 'test'"
         ).fetchone()
         self.assertEqual('test', match['firstname'])
         self.assertEqual('user', match['lastname'])
+
+    def test_insert_int_list(self):
+        table = SQLiteTable(
+            'test_table',
+            columns=(
+                TextColumn('firstname'),
+                IntListColumn('int_list'),
+            ),
+        )
+        db = SQLiteDatabase(
+            ':memory:',
+            tables=(table,)
+        )
+        db.do_creation()
+        db.insert('test_table', {'firstname': 'test', 'int_list': [1, 2, 3]})
+        match = db.connection.execute(
+            "SELECT * FROM test_table WHERE firstname = 'test'"
+        ).fetchone()
+        self.assertEqual([1, 2, 3], match['int_list'])
 
 
 class TestTransactionWrapper(unittest.TestCase):

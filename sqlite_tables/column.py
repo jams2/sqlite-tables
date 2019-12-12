@@ -13,6 +13,7 @@ from .enums import (
     SQLiteConstant,
 )
 from .utils import SQLiteTemplate
+from .types import IntList
 
 
 class SQLiteColumn(object):
@@ -26,6 +27,10 @@ class SQLiteColumn(object):
         f'UPDATE $$table_name SET $column_name = $default_for_update WHERE '
         f'$$primary_key_col = old.$$primary_key_col'
     )
+
+    @staticmethod
+    def prepare_for_insert(value):
+        return value
 
     def __init__(
         self,
@@ -254,3 +259,17 @@ class BoolColumn(SQLiteColumn):
         **kwargs,
     ) -> None:
         super().__init__(column_name, SQLiteType.BOOL, default=default, **kwargs)
+
+
+class IntListColumn(SQLiteColumn):
+    @staticmethod
+    def prepare_for_insert(value):
+        return IntList(value)
+
+    def __init__(
+        self,
+        column_name: str,
+        default: Optional[bool] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(column_name, SQLiteType.INT_LIST, default=default, **kwargs)
