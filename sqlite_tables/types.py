@@ -1,9 +1,3 @@
-from typing import (
-    Iterable,
-    Generator,
-)
-
-
 def adapt_bool(boolean: bool) -> bytes:
     return str(int(boolean)).encode('ascii')
 

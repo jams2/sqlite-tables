@@ -25,7 +25,8 @@ exclude =
     node_modules,
     # (mostly) auto generated, so ignore.
     migrations,
-    venv
+    venv,
+    build
 
 max-complexity = 15
 max-line-length = 88
