@@ -264,6 +264,11 @@ class BoolColumn(SQLiteColumn):
 class IntListColumn(SQLiteColumn):
     @staticmethod
     def prepare_for_insert(value):
+        """sqlite3 checks the type of the object passed in to
+        determine which adapter to call (if not a SQLite native type),
+        so casting the list to an IntList here ensures the correct
+        adapter is called.
+        """
         return IntList(value)
 
     def __init__(
